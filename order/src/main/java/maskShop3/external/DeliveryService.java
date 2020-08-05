@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Date;
 
-@FeignClient(name="delivery", url="http://localhost:8082")//url="http://delivery:8080")
+@FeignClient(name="delivery", url="http://delivery:8080")//http://localhost:8082
 public interface DeliveryService {
 
     @RequestMapping(method= RequestMethod.POST, path="/deliveries")
