@@ -9,27 +9,26 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PolicyHandler{
+public class PolicyHandler {
 
     @Autowired
     InventoryRepository inventoryRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverDeliveryRegisterd_Change(@Payload DeliveryRegisterd deliveryRegisterd){
+    public void wheneverDeliveryRegisterd_Change(@Payload DeliveryRegisterd deliveryRegisterd) {
 
-        if(deliveryRegisterd.isMe()){
+        if (deliveryRegisterd.isMe()) {
             System.out.println("##### listener REGISTER Change : " + deliveryRegisterd.toJson());
 
             Inventory inventory = new Inventory();
 
-            if(inventoryRepository.findByProductId(deliveryRegisterd.getProductId()).isPresent()) {
+            if (inventoryRepository.findByProductId(deliveryRegisterd.getProductId()).isPresent()) {
                 System.out.println("##### listener INVENTORY UPDATE ======================");
 
                 inventory = inventoryRepository.findByProductId(deliveryRegisterd.getProductId()).get();
                 inventory.setInvQty(inventory.getInvQty() - deliveryRegisterd.getInvQty());
                 inventoryRepository.save(inventory);
-            }
-             else {
+            } else {
                 System.out.println("##### listener INVENTORY INSERT ======================");
 
                 inventory.setProductId(deliveryRegisterd.getProductId());
@@ -40,10 +39,10 @@ public class PolicyHandler{
     }
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverDeliveryCanceled_Change(@Payload DeliveryCanceled deliveryCanceled){
+    public void wheneverDeliveryCanceled_Change(@Payload DeliveryCanceled deliveryCanceled) {
 
-        if(deliveryCanceled.isMe()){
-            System.out.println("##### listener INVENTORY CANCEL IF : "+ deliveryCanceled.toJson());
+        if (deliveryCanceled.isMe()) {
+            System.out.println("##### listener INVENTORY CANCEL IF : " + deliveryCanceled.toJson());
 
             Inventory inventory = new Inventory();
 
@@ -52,20 +51,26 @@ public class PolicyHandler{
             inventoryRepository.save(inventory);
         }
     }
-//0805 lys수정 start
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverProductModified_Change(@Payload ProductModified productModified){
 
-        if(productModified.isMe()) {
+    //0805 lys수정 start
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverProductModified_Change(@Payload ProductModified productModified) {
+        Inventory inventory = new Inventory();
+        if (inventoryRepository.findByProductId(productModified.getProductId()).isPresent()) {
+
             System.out.println("##### listener INVENTORY MODIFIED  : " + productModified.toJson());
 
-            Inventory inventory = new Inventory();
 
             inventory = inventoryRepository.findByProductId(productModified.getProductId()).get();
             inventory.setInvQty(productModified.getInvQty());
             inventoryRepository.save(inventory);
+        } else {
+            System.out.println("##### listener INVENTORY INSERT ======================");
+
+            inventory.setProductId(productModified.getProductId());
+            inventory.setInvQty(productModified.getInvQty());
+            inventoryRepository.save(inventory);
         }
     }
-//0805 lys수정 end
-
 }
+//0805 lys수정 end
